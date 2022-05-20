@@ -166,9 +166,10 @@ exports.getAllPost = async (req, res) => {
   try {
     const userID = req.user._id;
 
-    const posts = await Post.find({ creator: userID }).select(
-      "-__v -creator -updatedAt"
-    );
+    const posts = await Post.find({ creator: userID })
+      .select("-__v -creator -updatedAt")
+      .sort("-createdAt")
+      .exec();
     if (posts.length == 0) {
       res.status(200).send("User not created any post yet");
     } else res.status(201).send({ posts });
