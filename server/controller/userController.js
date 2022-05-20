@@ -32,7 +32,7 @@ exports.Register = async (req, res) => {
     // Save user in the database
     await user
       .save(user)
-      .then((data) => {
+      .then((user) => {
         res.status(201).send({ jwtToken: token, User: user });
       })
       .catch((err) => {
