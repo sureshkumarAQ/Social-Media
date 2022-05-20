@@ -15,6 +15,14 @@ var schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  followers: {
+    type: Number,
+    default: 0,
+  },
+  followings: {
+    type: Number,
+    default: 0,
+  },
 });
 
 // Hash password using bcrypt
