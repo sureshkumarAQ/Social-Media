@@ -1,5 +1,6 @@
 const User = require("../models/user.js");
 const Post = require("../models/post.js");
+const { findByIdAndUpdate } = require("../models/user.js");
 
 exports.createPost = async (req, res) => {
   try {
@@ -109,6 +110,68 @@ exports.unlikePostById = async (req, res) => {
 
       res.status(201).send({ updatedPost });
     }
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred ",
+    });
+  }
+};
+
+exports.addComment = async (req, res) => {
+  try {
+    const postID = req.params.postID;
+    const comment = req.body.comment;
+    console.log(comment);
+
+    const post = await Post.findById({ _id: postID });
+    if (!post) {
+      res.status(400).send("Post not found for given ID");
+    }
+
+    await Post.findByIdAndUpdate(postID, {
+      $push: { Comments: comment },
+    }).exec();
+    const updatedPost = await Post.findById({ _id: postID });
+    res.status(201).send({ updatedPost });
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred ",
+    });
+  }
+};
+
+exports.getPostById = async (req, res) => {
+  try {
+    const postID = req.params.postID;
+    const userID = req.user._id;
+
+    const post = await Post.findById({ _id: postID })
+      .select("-__v")
+      .populate("creator", ["email", "followers", "followings"]);
+
+    if (!post) {
+      res.status(400).send("Post Not found");
+    }
+    if (!post.creator.equals(userID)) {
+      res.status(401).send("User can only access his own post");
+    } else res.status(201).send(post);
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred ",
+    });
+  }
+};
+
+exports.getAllPost = async (req, res) => {
+  try {
+    const userID = req.user._id;
+
+    const posts = await Post.find({ creator: userID }).select(
+      "-__v -creator -updatedAt"
+    );
+    if (posts.length == 0) {
+      res.status(200).send("User not created any post yet");
+    } else res.status(201).send({ posts });
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred ",
